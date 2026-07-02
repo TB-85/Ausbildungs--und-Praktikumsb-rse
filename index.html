@@ -3,70 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praktikumsbörse - Firmendaten</title>
+    <title>Praktikumsbörse - TSV Geiselbullach</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        h1 { color: #333; }
+        /* Modernes Design */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: #2c3e50; }
+        
+        /* Kachel-Layout */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
+        .kachel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
+        .kachel:hover { transform: translateY(-5px); }
+        
+        h3 { margin: 0 0 10px 0; color: #0056b3; }
+        .tag { display: inline-block; background: #e7f3ff; color: #0056b3; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-bottom: 10px; }
+        p { margin: 5px 0; font-size: 0.95em; }
+        .info-label { font-weight: bold; color: #555; }
     </style>
 </head>
 <body>
 
-    <h1>Übersicht Praktikumsplätze</h1>
-    <div id="tabelle-container">Lade Praktikumsdaten...</div>
+    <header>
+        <h1>Praktikumsbörse</h1>
+        <p>Hier findest du alle aktuellen Praktikumsangebote.</p>
+    </header>
+
+    <div id="grid" class="grid">
+        <p style="text-align:center;">Daten werden geladen...</p>
+    </div>
 
     <script>
-        // Dein Link zum Google Sheet im CSV-Format
+        // Dein CSV-Link aus "Im Web veröffentlichen"
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSso11oiwfev4Yev-kslJ5cLjvMMvTe85HuohBVT1kXoWexWZgcZNLbkYC7q9jRR0e0fLdnmVahY0Ok/pub?gid=0&single=true&output=csv';
 
-        async function ladeLiveDaten() {
+        async function ladeDaten() {
             try {
                 const response = await fetch(csvUrl);
                 const data = await response.text();
                 
-                // CSV-Daten in Zeilen splitten, Header-Zeile (erste Zeile) überspringen
+                // CSV-Zeilen splitten und Header (erste Zeile) überspringen
                 const zeilen = data.split('\n').slice(1);
-                
-                const datenbank = zeilen.map(z => {
+                const grid = document.getElementById('grid');
+                grid.innerHTML = ''; // Lade-Text entfernen
+
+                zeilen.forEach(z => {
+                    if (z.trim() === "") return;
                     const [name, sparte, branche, tel, mail, adresse, ausbildung] = z.split(',');
-                    return { name, sparte, branche, tel, mail, adresse, ausbildung };
-                }).filter(b => b.name && b.name.trim() !== ""); // Nur gültige Zeilen
+                    
+                    const kachel = document.createElement('div');
+                    kachel.className = 'kachel';
+                    kachel.innerHTML = `
+                        <h3>${name || 'Unbekannte Firma'}</h3>
+                        <div class="tag">${sparte || 'Allgemein'}</div>
+                        <p><span class="info-label">Branche:</span> ${branche || '-'}</p>
+                        <p><span class="info-label">Ausbildung:</span> ${ausbildung || '-'}</p>
+                        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                        <p>📞 ${tel || 'k.A.'}</p>
+                        <p>✉️ ${mail || 'k.A.'}</p>
+                        <p>📍 ${adresse || 'k.A.'}</p>
+                    `;
+                    grid.appendChild(kachel);
+                });
                 
-                renderTabelle(datenbank);
-            } catch (error) {
-                document.getElementById('tabelle-container').innerText = "Daten konnten nicht geladen werden.";
-                console.error(error);
+                if (zeilen.length <= 1) {
+                    grid.innerHTML = '<p style="text-align:center;">Keine Daten gefunden.</p>';
+                }
+            } catch (e) {
+                document.getElementById('grid').innerText = "Fehler beim Laden: " + e.message;
             }
         }
 
-        function renderTabelle(daten) {
-            const container = document.getElementById('tabelle-container');
-            let html = `<table>
-                <tr>
-                    <th>Name</th><th>Sparte</th><th>Branche</th>
-                    <th>Tel</th><th>Mail</th><th>Adresse</th><th>Ausbildung</th>
-                </tr>`;
-            
-            daten.forEach(firma => {
-                html += `<tr>
-                    <td>${firma.name || ''}</td>
-                    <td>${firma.sparte || ''}</td>
-                    <td>${firma.branche || ''}</td>
-                    <td>${firma.tel || ''}</td>
-                    <td>${firma.mail || ''}</td>
-                    <td>${firma.adresse || ''}</td>
-                    <td>${firma.ausbildung || ''}</td>
-                </tr>`;
-            });
-            
-            html += '</table>';
-            container.innerHTML = html;
-        }
-
-        // Starte das Laden sofort beim Seitenaufruf
-        ladeLiveDaten();
+        ladeDaten();
     </script>
 </body>
 </html>
