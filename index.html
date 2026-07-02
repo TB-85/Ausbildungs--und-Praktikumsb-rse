@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Praktikumsbörse | Amperschule Olching</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .kachel:hover { transform: scale(1.02); transition: 0.3s; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-blue-900 text-white p-8 text-center shadow-lg">
+        <h1 class="text-4xl font-bold">Amperschule Olching</h1>
+        <p class="mt-2 text-blue-200">Digitale Ausbildungs- & Praktikumsbörse</p>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <button onclick="filterDaten('Technik')" class="kachel p-8 bg-blue-700 text-white rounded-xl shadow-lg font-bold text-xl">🔧 Technik</button>
+            <button onclick="filterDaten('Soziales')" class="kachel p-8 bg-green-700 text-white rounded-xl shadow-lg font-bold text-xl">🍎 Soziales & Ernährung</button>
+            <button onclick="filterDaten('Wirtschaft')" class="kachel p-8 bg-purple-700 text-white rounded-xl shadow-lg font-bold text-xl">📈 Wirtschaft & Komm.</button>
+        </div>
+
+        <input type="text" id="suche" onkeyup="sucheBetrieb()" placeholder="Suche nach Betrieb oder Branche..." 
+               class="w-full p-4 rounded-lg border shadow-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none">
+
+        <div id="liste" class="bg-white rounded-lg shadow-md overflow-hidden"></div>
+    </main>
+
+    <script>
+        // Deine Datenbank aus den Praktikumsbescheinigungen
+        const betriebe = [
+            { name: 'KFZ Service Nader', sparte: 'Technik', branche: 'KFZ-Handwerk', kontakt: '0163/3968096' },
+            { name: 'Autohaus Neumayr', sparte: 'Technik', branche: 'KFZ-Mechatroniker', kontakt: '08142/59394-0' },
+            { name: 'Elektrotechnik Schröter', sparte: 'Technik', branche: 'Elektro', kontakt: '08141/534300' },
+            { name: 'Amper Verband', sparte: 'Technik', branche: 'Umweltschutz', kontakt: '08141/73181' },
+            { name: 'Kaspars Hofladen', sparte: 'Soziales', branche: 'Landwirtschaft', kontakt: '089/89026747' },
+            { name: 'Kindergarten Spatzennest', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142-58706' },
+            { name: 'OSD Kinderhaus Esting', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142/4485790' },
+            { name: 'Hausarztpraxis Olching', sparte: 'Soziales', branche: 'Medizin', kontakt: '08142/99200' },
+            { name: 'Seniorenwohnen Olching', sparte: 'Soziales', branche: 'Pflege', kontakt: '08142/441177' },
+            { name: 'Denk mit! Esting', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142 663 5871' },
+            { name: 'Die Medienbucom', sparte: 'Wirtschaft', branche: 'Medien', kontakt: '08141 5335327' },
+            { name: 'Fitnesszone Gröbenzell', sparte: 'Wirtschaft', branche: 'Sport/Fitness', kontakt: '08142-65083' },
+            { name: 'La Biosthetique', sparte: 'Wirtschaft', branche: 'Kosmetik', kontakt: '08142/1213456' }
+        ];
+
+        function render(data) {
+            const container = document.getElementById('liste');
+            container.innerHTML = `
+                <table class="w-full text-left">
+                    <thead class="bg-gray-200"><tr><th class="p-4">Firma</th><th class="p-4">Branche</th><th class="p-4">Kontakt</th></tr></thead>
+                    <tbody>
+                        ${data.map(b => `
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-4 font-semibold">${b.name}</td>
+                                <td class="p-4 text-gray-600">${b.branche}</td>
+                                <td class="p-4 text-blue-600">${b.kontakt}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function filterDaten(sparte) { render(betriebe.filter(b => b.sparte === sparte)); }
+        function sucheBetrieb() {
+            const val = document.getElementById('suche').value.toLowerCase();
+            render(betriebe.filter(b => b.name.toLowerCase().includes(val) || b.branche.toLowerCase().includes(val)));
+        }
+
+        render(betriebe);
+    </script>
+</body>
+</html>
