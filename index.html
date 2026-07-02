@@ -3,53 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praktikumsbörse - TSV Geiselbullach</title>
+    <title>Praktikumsbörse - Amperschule Olching</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
         h1 { text-align: center; color: #1a3c6e; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 20px auto; }
-        .kachel { background: #ffffff; padding: 20px; border-radius: 12px; border-left: 5px solid #1a3c6e; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .kachel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 5px solid #1a3c6e; }
         .kachel h3 { margin: 0 0 10px 0; color: #1a3c6e; }
-        .label { font-weight: bold; color: #555; display: block; font-size: 0.8em; text-transform: uppercase; margin-top: 10px; }
+        .info { font-size: 0.9em; margin: 5px 0; }
+        .label { font-weight: bold; color: #555; }
     </style>
 </head>
 <body>
 
     <h1>Praktikumsangebote</h1>
-    <div id="grid" class="grid">Lade Daten...</div>
+    <div id="grid" class="grid">Daten werden geladen...</div>
 
     <script>
+        // Link für CSV-Export (Stelle sicher, dass im Sheet Daten in Zeile 2+ stehen!)
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSso11oiwfev4Yev-kslJ5cLjvMMvTe85HuohBVT1kXoWexWZgcZNLbkYC7q9jRR0e0fLdnmVahY0Ok/pub?gid=0&single=true&output=csv';
 
         async function ladeDaten() {
+            const grid = document.getElementById('grid');
             try {
                 const response = await fetch(csvUrl);
                 const text = await response.text();
                 const zeilen = text.split('\n').slice(1);
-                const grid = document.getElementById('grid');
-                grid.innerHTML = '';
+                
+                grid.innerHTML = ''; // Lade-Text löschen
 
                 zeilen.forEach(z => {
                     if(z.trim() === "") return;
+                    // Split am Komma
+                    const t = z.split(',');
                     
-                    // Automatische Erkennung: Nimmt Semikolon oder Komma
-                    const teile = z.includes(';') ? z.split(';') : z.split(',');
-
                     const kachel = document.createElement('div');
                     kachel.className = 'kachel';
                     kachel.innerHTML = `
-                        <h3>${teile[0] || 'Unbekannte Firma'}</h3>
-                        <span class="label">Sparte</span> ${teile[1] || '-'}
-                        <span class="label">Branche</span> ${teile[2] || '-'}
-                        <span class="label">Ausbildung</span> ${teile[6] || '-'}
-                        <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
-                        <small>📞 ${teile[3] || ''} | ✉️ ${teile[4] || ''}</small><br>
-                        <small>📍 ${teile[5] || ''}</small>
+                        <h3>${t[0] || 'Firma'}</h3>
+                        <p class="info"><span class="label">Sparte:</span> ${t[1] || '-'}</p>
+                        <p class="info"><span class="label">Branche:</span> ${t[2] || '-'}</p>
+                        <p class="info"><span class="label">Ausbildung:</span> ${t[6] || '-'}</p>
+                        <hr>
+                        <p class="info">📞 ${t[3] || 'k.A.'}</p>
+                        <p class="info">✉️ ${t[4] || 'k.A.'}</p>
+                        <p class="info">📍 ${t[5] || 'k.A.'}</p>
                     `;
                     grid.appendChild(kachel);
                 });
             } catch (e) {
-                document.getElementById('grid').innerHTML = "Fehler beim Laden der Daten.";
+                grid.innerHTML = "Fehler beim Laden.";
             }
         }
         ladeDaten();
