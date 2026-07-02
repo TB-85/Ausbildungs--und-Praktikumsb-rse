@@ -5,74 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Praktikumsbörse - TSV Geiselbullach</title>
     <style>
-        /* Modernes Design */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { color: #2c3e50; }
-        
-        /* Kachel-Layout */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
-        .kachel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
-        .kachel:hover { transform: translateY(-5px); }
-        
-        h3 { margin: 0 0 10px 0; color: #0056b3; }
-        .tag { display: inline-block; background: #e7f3ff; color: #0056b3; padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; margin-bottom: 10px; }
-        p { margin: 5px 0; font-size: 0.95em; }
-        .info-label { font-weight: bold; color: #555; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #1a3c6e; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 20px auto; }
+        .kachel { background: #ffffff; padding: 20px; border-radius: 12px; border-left: 5px solid #1a3c6e; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .kachel h3 { margin: 0 0 10px 0; color: #1a3c6e; }
+        .label { font-weight: bold; color: #555; display: block; font-size: 0.8em; text-transform: uppercase; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Praktikumsbörse</h1>
-        <p>Hier findest du alle aktuellen Praktikumsangebote.</p>
-    </header>
-
-    <div id="grid" class="grid">
-        <p style="text-align:center;">Daten werden geladen...</p>
-    </div>
+    <h1>Praktikumsangebote</h1>
+    <div id="grid" class="grid">Lade Daten...</div>
 
     <script>
-        // Dein CSV-Link aus "Im Web veröffentlichen"
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSso11oiwfev4Yev-kslJ5cLjvMMvTe85HuohBVT1kXoWexWZgcZNLbkYC7q9jRR0e0fLdnmVahY0Ok/pub?gid=0&single=true&output=csv';
 
         async function ladeDaten() {
             try {
                 const response = await fetch(csvUrl);
-                const data = await response.text();
-                
-                // CSV-Zeilen splitten und Header (erste Zeile) überspringen
-                const zeilen = data.split('\n').slice(1);
+                const text = await response.text();
+                const zeilen = text.split('\n').slice(1);
                 const grid = document.getElementById('grid');
-                grid.innerHTML = ''; // Lade-Text entfernen
+                grid.innerHTML = '';
 
                 zeilen.forEach(z => {
-                    if (z.trim() === "") return;
-                    const [name, sparte, branche, tel, mail, adresse, ausbildung] = z.split(',');
+                    if(z.trim() === "") return;
                     
+                    // Automatische Erkennung: Nimmt Semikolon oder Komma
+                    const teile = z.includes(';') ? z.split(';') : z.split(',');
+
                     const kachel = document.createElement('div');
                     kachel.className = 'kachel';
                     kachel.innerHTML = `
-                        <h3>${name || 'Unbekannte Firma'}</h3>
-                        <div class="tag">${sparte || 'Allgemein'}</div>
-                        <p><span class="info-label">Branche:</span> ${branche || '-'}</p>
-                        <p><span class="info-label">Ausbildung:</span> ${ausbildung || '-'}</p>
-                        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                        <p>📞 ${tel || 'k.A.'}</p>
-                        <p>✉️ ${mail || 'k.A.'}</p>
-                        <p>📍 ${adresse || 'k.A.'}</p>
+                        <h3>${teile[0] || 'Unbekannte Firma'}</h3>
+                        <span class="label">Sparte</span> ${teile[1] || '-'}
+                        <span class="label">Branche</span> ${teile[2] || '-'}
+                        <span class="label">Ausbildung</span> ${teile[6] || '-'}
+                        <hr style="margin:15px 0; border:0; border-top:1px solid #eee;">
+                        <small>📞 ${teile[3] || ''} | ✉️ ${teile[4] || ''}</small><br>
+                        <small>📍 ${teile[5] || ''}</small>
                     `;
                     grid.appendChild(kachel);
                 });
-                
-                if (zeilen.length <= 1) {
-                    grid.innerHTML = '<p style="text-align:center;">Keine Daten gefunden.</p>';
-                }
             } catch (e) {
-                document.getElementById('grid').innerText = "Fehler beim Laden: " + e.message;
+                document.getElementById('grid').innerHTML = "Fehler beim Laden der Daten.";
             }
         }
-
         ladeDaten();
     </script>
 </body>
