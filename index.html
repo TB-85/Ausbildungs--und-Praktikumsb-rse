@@ -2,60 +2,57 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Praktikumsbörse - Amperschule Olching</title>
+    <title>Praktikumsbörse</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
-        h1 { text-align: center; color: #1a3c6e; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 20px auto; }
-        .kachel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-left: 5px solid #1a3c6e; }
-        .kachel h3 { margin: 0 0 10px 0; color: #1a3c6e; }
-        .info { font-size: 0.9em; margin: 5px 0; }
-        .label { font-weight: bold; color: #555; }
+        body { font-family: sans-serif; padding: 40px; background: #f0f2f5; }
+        h1 { text-align: center; color: #333; }
+        #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .kachel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-left: 5px solid #0056b3; }
     </style>
 </head>
 <body>
 
     <h1>Praktikumsangebote</h1>
-    <div id="grid" class="grid">Daten werden geladen...</div>
+    <div id="grid">Lädt Daten...</div>
 
     <script>
-        // Link für CSV-Export (Stelle sicher, dass im Sheet Daten in Zeile 2+ stehen!)
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSso11oiwfev4Yev-kslJ5cLjvMMvTe85HuohBVT1kXoWexWZgcZNLbkYC7q9jRR0e0fLdnmVahY0Ok/pub?gid=0&single=true&output=csv';
 
-        async function ladeDaten() {
+        async function init() {
             const grid = document.getElementById('grid');
             try {
                 const response = await fetch(csvUrl);
                 const text = await response.text();
                 const zeilen = text.split('\n').slice(1);
                 
-                grid.innerHTML = ''; // Lade-Text löschen
+                grid.innerHTML = ''; // Lade-Text entfernen
+
+                if(zeilen.length === 0 || (zeilen.length === 1 && zeilen[0].trim() === "")) {
+                    grid.innerHTML = "<h3>Keine Daten im Sheet gefunden.</h3>";
+                    return;
+                }
 
                 zeilen.forEach(z => {
                     if(z.trim() === "") return;
-                    // Split am Komma
-                    const t = z.split(',');
+                    
+                    // Wir teilen die Zeile jetzt flexibler
+                    const teile = z.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     const kachel = document.createElement('div');
                     kachel.className = 'kachel';
                     kachel.innerHTML = `
-                        <h3>${t[0] || 'Firma'}</h3>
-                        <p class="info"><span class="label">Sparte:</span> ${t[1] || '-'}</p>
-                        <p class="info"><span class="label">Branche:</span> ${t[2] || '-'}</p>
-                        <p class="info"><span class="label">Ausbildung:</span> ${t[6] || '-'}</p>
-                        <hr>
-                        <p class="info">📞 ${t[3] || 'k.A.'}</p>
-                        <p class="info">✉️ ${t[4] || 'k.A.'}</p>
-                        <p class="info">📍 ${t[5] || 'k.A.'}</p>
+                        <h3>${teile[0] || 'Unbekannt'}</h3>
+                        <p><strong>Sparte:</strong> ${teile[1] || '-'}</p>
+                        <p><strong>Branche:</strong> ${teile[2] || '-'}</p>
+                        <p><strong>Ausbildung:</strong> ${teile[6] || '-'}</p>
                     `;
                     grid.appendChild(kachel);
                 });
-            } catch (e) {
-                grid.innerHTML = "Fehler beim Laden.";
+            } catch (err) {
+                grid.innerHTML = "Fehler: " + err.message;
             }
         }
-        ladeDaten();
+        init();
     </script>
 </body>
 </html>
