@@ -2,76 +2,65 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Praktikumsbörse | Amperschule Olching</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .kachel:hover { transform: scale(1.02); transition: 0.3s; }
-    </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 p-6">
 
-    <header class="bg-blue-900 text-white p-8 text-center shadow-lg">
-        <h1 class="text-4xl font-bold">Amperschule Olching</h1>
-        <p class="mt-2 text-blue-200">Digitale Ausbildungs- & Praktikumsbörse</p>
-    </header>
+    <h1 class="text-4xl font-bold text-center mb-10 text-blue-900">Amperschule Praktikumsbörse</h1>
 
-    <main class="container mx-auto p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <button onclick="filterDaten('Technik')" class="kachel p-8 bg-blue-700 text-white rounded-xl shadow-lg font-bold text-xl">🔧 Technik</button>
-            <button onclick="filterDaten('Soziales')" class="kachel p-8 bg-green-700 text-white rounded-xl shadow-lg font-bold text-xl">🍎 Soziales & Ernährung</button>
-            <button onclick="filterDaten('Wirtschaft')" class="kachel p-8 bg-purple-700 text-white rounded-xl shadow-lg font-bold text-xl">📈 Wirtschaft & Komm.</button>
-        </div>
+    <!-- Bereich 1: Sparten -->
+    <div id="view-sparten" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <button onclick="showBranchen('Technik')" class="p-12 bg-blue-700 text-white rounded-2xl text-2xl font-bold shadow-lg hover:bg-blue-800">Technik</button>
+        <button onclick="showBranchen('Soziales')" class="p-12 bg-green-700 text-white rounded-2xl text-2xl font-bold shadow-lg hover:bg-green-800">Soziales & Ernährung</button>
+        <button onclick="showBranchen('Wirtschaft')" class="p-12 bg-purple-700 text-white rounded-2xl text-2xl font-bold shadow-lg hover:bg-purple-800">Wirtschaft & Komm.</button>
+    </div>
 
-        <input type="text" id="suche" onkeyup="sucheBetrieb()" placeholder="Suche nach Betrieb oder Branche..." 
-               class="w-full p-4 rounded-lg border shadow-sm mb-6 focus:ring-2 focus:ring-blue-500 outline-none">
+    <!-- Bereich 2: Branchen -->
+    <div id="view-branchen" class="hidden grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"></div>
 
-        <div id="liste" class="bg-white rounded-lg shadow-md overflow-hidden"></div>
-    </main>
+    <!-- Bereich 3: Tabelle -->
+    <div id="view-tabelle" class="hidden max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg mt-8">
+        <button onclick="location.reload()" class="mb-4 text-blue-600 underline">← Zurück zur Übersicht</button>
+        <div id="tabelle-inhalt" class="overflow-x-auto"></div>
+    </div>
 
     <script>
-        // Deine Datenbank aus den Praktikumsbescheinigungen
-        const betriebe = [
-            { name: 'KFZ Service Nader', sparte: 'Technik', branche: 'KFZ-Handwerk', kontakt: '0163/3968096' },
-            { name: 'Autohaus Neumayr', sparte: 'Technik', branche: 'KFZ-Mechatroniker', kontakt: '08142/59394-0' },
-            { name: 'Elektrotechnik Schröter', sparte: 'Technik', branche: 'Elektro', kontakt: '08141/534300' },
-            { name: 'Amper Verband', sparte: 'Technik', branche: 'Umweltschutz', kontakt: '08141/73181' },
-            { name: 'Kaspars Hofladen', sparte: 'Soziales', branche: 'Landwirtschaft', kontakt: '089/89026747' },
-            { name: 'Kindergarten Spatzennest', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142-58706' },
-            { name: 'OSD Kinderhaus Esting', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142/4485790' },
-            { name: 'Hausarztpraxis Olching', sparte: 'Soziales', branche: 'Medizin', kontakt: '08142/99200' },
-            { name: 'Seniorenwohnen Olching', sparte: 'Soziales', branche: 'Pflege', kontakt: '08142/441177' },
-            { name: 'Denk mit! Esting', sparte: 'Soziales', branche: 'Erziehung', kontakt: '08142 663 5871' },
-            { name: 'Die Medienbucom', sparte: 'Wirtschaft', branche: 'Medien', kontakt: '08141 5335327' },
-            { name: 'Fitnesszone Gröbenzell', sparte: 'Wirtschaft', branche: 'Sport/Fitness', kontakt: '08142-65083' },
-            { name: 'La Biosthetique', sparte: 'Wirtschaft', branche: 'Kosmetik', kontakt: '08142/1213456' }
+        const datenbank = [
+            { name: 'KFZ Service Nader', sparte: 'Technik', branche: 'KFZ-Handwerk', tel: '0163/3968096', mail: '-', adresse: 'Gottlieb-Daimler-Str. 6, 82140 Olching', ausbildung: 'KFZ-Mechatroniker' },
+            { name: 'Autohaus Neumayr', sparte: 'Technik', branche: 'KFZ-Handwerk', tel: '08142/59394-0', mail: 'info@autohaus-neumayr.de', adresse: 'Otchinger Str. 150, 82194 Gröbenzell', ausbildung: 'KFZ-Mechatroniker, Kfz-Kaufmann' },
+            { name: 'Elektrotechnik Schröter', sparte: 'Technik', branche: 'Elektrotechnik', tel: '08141/534300', mail: '-', adresse: 'Weidenstr. 21a, 82256 FFB', ausbildung: 'Elektroniker' },
+            { name: 'Amper Verband', sparte: 'Technik', branche: 'Umweltschutz', tel: '08141/73181', mail: 'info@amperverband.de', adresse: 'Josef Kistler Weg 20, 82140 Olching', ausbildung: 'Fachkraft für Abwassertechnik' },
+            { name: 'Kaspars Hofladen', sparte: 'Soziales', branche: 'Ernährung', tel: '089/89026747', mail: '-', adresse: 'Ackerweg, 82278 Puchheim', ausbildung: 'Verkäufer/in' },
+            { name: 'Kindergarten Spatzennest', sparte: 'Soziales', branche: 'Erziehung', tel: '08142-58706', mail: '-', adresse: 'Srechtling 5, 82194 Gröbenzell', ausbildung: 'Kinderpfleger/in' },
+            { name: 'OSD Kinderhaus Esting', sparte: 'Soziales', branche: 'Erziehung', tel: '08142/4485790', mail: 'kinderhaus@sozialdienst-olching.de', adresse: 'Schloßstr. 14, 82140 Olching', ausbildung: 'Erzieher/in' },
+            { name: 'Hausarztpraxis Olching', sparte: 'Soziales', branche: 'Gesundheit', tel: '08142/99200', mail: '-', adresse: 'Hauptstr. 96, 82140 Olching', ausbildung: 'Med. Fachangestellte/r' },
+            { name: 'Seniorenwohnen Olching', sparte: 'Soziales', branche: 'Pflege', tel: '08142/441177', mail: 'info.olc@rks.brk.de', adresse: 'Isabellastr. 1, 82140 Olching', ausbildung: 'Pflegefachkraft' },
+            { name: 'Denk mit! Esting', sparte: 'Soziales', branche: 'Erziehung', tel: '08142 663 5871', mail: '-', adresse: 'Hubertusstr. 2, 82140 Olching', ausbildung: 'Erzieher/in' },
+            { name: 'Die Medienbucom', sparte: 'Wirtschaft', branche: 'Medien', tel: '08141 5335327', mail: '-', adresse: 'Hauptstr. 9, 82223 Eichenau', ausbildung: 'Medientechnologe/in' },
+            { name: 'Fitnesszone Gröbenzell', sparte: 'Wirtschaft', branche: 'Sport/Fitness', tel: '08142-65083', mail: '-', adresse: 'Olchingerstr. 86, 82194 Gröbenzell', ausbildung: 'Sport- u. Fitnesskaufmann' },
+            { name: 'La Biosthetique', sparte: 'Wirtschaft', branche: 'Kosmetik', tel: '08142/1213456', mail: '-', adresse: 'Fritzstraße 6, 82140 Olching', ausbildung: 'Friseur/in' }
         ];
 
-        function render(data) {
-            const container = document.getElementById('liste');
-            container.innerHTML = `
+        function showBranchen(sparte) {
+            document.getElementById('view-sparten').classList.add('hidden');
+            const container = document.getElementById('view-branchen');
+            container.classList.remove('hidden');
+            const branchen = [...new Set(datenbank.filter(b => b.sparte === sparte).map(b => b.branche))];
+            container.innerHTML = branchen.map(b => `<button onclick="showTabelle('${b}')" class="p-8 bg-gray-200 rounded-xl font-bold hover:bg-gray-300">${b}</button>`).join('');
+        }
+
+        function showTabelle(branche) {
+            document.getElementById('view-branchen').classList.add('hidden');
+            document.getElementById('view-tabelle').classList.remove('hidden');
+            const filtered = datenbank.filter(b => b.branche === branche);
+            document.getElementById('tabelle-inhalt').innerHTML = `
                 <table class="w-full text-left">
-                    <thead class="bg-gray-200"><tr><th class="p-4">Firma</th><th class="p-4">Branche</th><th class="p-4">Kontakt</th></tr></thead>
-                    <tbody>
-                        ${data.map(b => `
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="p-4 font-semibold">${b.name}</td>
-                                <td class="p-4 text-gray-600">${b.branche}</td>
-                                <td class="p-4 text-blue-600">${b.kontakt}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
+                    <thead><tr class="border-b"><th>Firma</th><th>Kontakt</th><th>E-Mail</th><th>Anschrift</th><th>Ausbildung</th></tr></thead>
+                    <tbody>${filtered.map(b => `<tr><td class="p-3">${b.name}</td><td>${b.tel}</td><td>${b.mail}</td><td>${b.adresse}</td><td>${b.ausbildung}</td></tr>`).join('')}</tbody>
                 </table>
             `;
         }
-
-        function filterDaten(sparte) { render(betriebe.filter(b => b.sparte === sparte)); }
-        function sucheBetrieb() {
-            const val = document.getElementById('suche').value.toLowerCase();
-            render(betriebe.filter(b => b.name.toLowerCase().includes(val) || b.branche.toLowerCase().includes(val)));
-        }
-
-        render(betriebe);
     </script>
 </body>
 </html>
